@@ -33,10 +33,15 @@ double dispersion(double pies[]) {
 		sum += res * res;
 	}
 
-	printf("Average %f", average);
-	printf("Sum %f", sum);
+	printf("Average %.16f\n", average);
+	printf("Sum %.16f\n", sum);
+	printf("Num %d\n", num);
 
-	return (1 / num)*sum;
+	double res = ((double)1 / num) * sum * 10000;
+
+	printf("Dispersion: %.16f\n", res);
+
+	return res;
 }
 
 int main(int argc, char* argv[])
@@ -71,21 +76,18 @@ int main(int argc, char* argv[])
 			approx = 4.0 * ((double)total_in_circle / total);
 			printf("pi=%.16f; error=%.16f, points=%ld\n",
 				approx, fabs(pi - approx), total);
+			for (int i = 0; i < 100; i++) {
+				if (pies[i] == 0) {
+					pies[i] = approx;
+					printf("PI %.16f", pies[i]);
+					break;
+				}
+			}
 		}
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
 	if (rank == 0) {
-		for (int i = 0; i < 100; i++) {
-			if (pies[i] == 0) {
-				pies[i] = approx;
-			}
-			else {
-				break;
-			}
-		}
-
 		double disp = dispersion(pies);
-		printf("Dispersion: %f\n", disp);
 	}
 	MPI_Finalize();
 	return 0;

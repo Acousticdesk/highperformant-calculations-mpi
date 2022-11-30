@@ -7,6 +7,38 @@
 #define n_in_proc 1000000
 #define RAND_MAX 32767
 
+double dispersion(double pies[]) {
+	double sum = 0;
+	double average = 0;
+	int num = 0;
+
+	for (int i = 0; i < 100; i++) {
+		if (pies[i] == 0) {
+			break;
+		}
+
+		num++;
+		average += pies[i];
+	}
+
+	average = average / num;
+
+	for (int i = 0; i < 100; i++) {
+		if (pies[i] == 0) {
+			break;
+		}
+
+		double res = pies[i] - average;
+		printf("res %f", res);
+		sum += res * res;
+	}
+
+	printf("Average %f", average);
+	printf("Sum %f", sum);
+
+	return (1 / num)*sum;
+}
+
 int main(int argc, char* argv[])
 {
 	time_t t;
@@ -18,6 +50,7 @@ int main(int argc, char* argv[])
 	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	if (rank == 0) N_in_proc = atoi(argv[1]);
+	double pies[100] = {0};
 	MPI_Bcast(&N_in_proc, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	for (i = 0; i < N_in_proc; i++)
 	{
@@ -30,8 +63,6 @@ int main(int argc, char* argv[])
 			if (x * x + y * y < R * R)
 				in_circle++;
 		}
-		/*printf("x: %lf\n", x);
-		printf("y: %lf\n", y);*/
 		MPI_Reduce(&in_circle, &total_in_circle, 1, MPI_INT,
 			MPI_SUM, 0, MPI_COMM_WORLD);
 		if (rank == 0)
@@ -41,6 +72,20 @@ int main(int argc, char* argv[])
 			printf("pi=%.16f; error=%.16f, points=%ld\n",
 				approx, fabs(pi - approx), total);
 		}
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+	if (rank == 0) {
+		for (int i = 0; i < 100; i++) {
+			if (pies[i] == 0) {
+				pies[i] = approx;
+			}
+			else {
+				break;
+			}
+		}
+
+		double disp = dispersion(pies);
+		printf("Dispersion: %f\n", disp);
 	}
 	MPI_Finalize();
 	return 0;

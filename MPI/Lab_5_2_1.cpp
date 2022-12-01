@@ -29,7 +29,6 @@ double dispersion(double pies[]) {
 		}
 
 		double res = pies[i] - average;
-		printf("res %f", res);
 		sum += res * res;
 	}
 
